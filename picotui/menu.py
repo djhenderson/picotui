@@ -59,22 +59,28 @@ class WMenuBar(ItemSelWidget):
             res = None
             action = False
             sel = self.items[self.selected][1]
+
             if key == KEY_ESC:
                 self.close()
                 return ACTION_CANCEL
+
             elif key == KEY_LEFT:
                 if self.pulled_down:
                     self.screen_redraw()
                 self.move_focus(-1)
+
             elif key == KEY_RIGHT:
                 if self.pulled_down:
                     self.screen_redraw()
                 self.move_focus(1)
+
             elif key == KEY_ENTER:
                 self.pulled_down = True
                 action = True
+
             elif key == KEY_DOWN and isinstance(sel, Widget):
                 self.pulled_down = True
+
             else:
                 return
 
@@ -82,12 +88,15 @@ class WMenuBar(ItemSelWidget):
             if isinstance(sel, Widget) and self.pulled_down:
                 sel.set_xy(self.get_item_x(self.selected), self.y + 1)
                 res = sel.loop()
+
                 if res == ACTION_PREV:
                     key = KEY_LEFT
                     continue
+
                 if res == ACTION_NEXT:
                     key = KEY_RIGHT
                     continue
+
                 if res == ACTION_CANCEL:
                     self.pulled_down = False
                     self.screen_redraw()
@@ -96,6 +105,7 @@ class WMenuBar(ItemSelWidget):
 
                 self.close()
                 return res
+
             elif action:
                 self.close()
                 return sel
@@ -146,16 +156,22 @@ class WMenuBox(ItemSelWidget):
             i += 1
 
     def handle_key(self, key):
+
         if key == KEY_ESC:
             return ACTION_CANCEL
+
         elif key == KEY_UP:
             self.move_focus(-1)
+
         elif key == KEY_DOWN:
             self.move_focus(1)
+
         elif key == KEY_LEFT:
             return ACTION_PREV
+
         elif key == KEY_RIGHT:
             return ACTION_NEXT
+
         elif key == KEY_ENTER:
             return self.items[self.selected][1]
 
