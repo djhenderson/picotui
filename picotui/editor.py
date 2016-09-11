@@ -5,6 +5,7 @@
 #
 import sys
 import os
+import logging as log
 
 from .screen import *
 from .basewidget import Widget
@@ -52,10 +53,20 @@ class Editor(Widget):
         r = self.y
         for c in range(self.height):
             self.goto(self.x, r)
-            if i == self.total_lines:
+            # adding "or i < 0" fixes crash, but ...
+            # main screen is seriously messed up when you cursor down
+            # or page down to the last line.
+            # Note mintty xterm-256volor, 120x50, cygwin on Win7.
+            if i >= self.total_lines or i < 0:
                 self.show_line("", -1)
             else:
-                self.show_line(self.content[i], i)
+                try:
+                    self.show_line(self.content[i], i)
+                except IndexError as e:
+                    log.debug("Exception: %s" % e)
+                    log.debug("i = %d" % i)
+                    log.debug("len(self.content) = %d" % len(self.content))
+                    raise
                 i += 1
             r += 1
         self.set_cursor()

@@ -69,6 +69,45 @@ b"\x1bOR": KEY_F3,
 b"\x1bOS": KEY_F4,
 }
 
+# Unicode box drawing characters
+#
+# http://melvilletheatre.com/articles/ncurses-extended-characters/index.html
+# https://unix.stackexchange.com/questions/89780/double-line-box-drawing-characters-in-terminal
+# https://en.wikipedia.org/wiki/Box-drawing_character
+# http://www.unicode.org/charts/PDF/U2500.pdf
+
+# Double variation
+ACS_D_HLINE = bytes("═", "utf-8")  # "═" \u2550
+ACS_D_VLINE = bytes("║", "utf-8")  # "║" \u2551
+ACS_D_ULCORNER = bytes("╔", "utf-8")  # "╔" \u2554
+ACS_D_URCORNER = bytes("╗", "utf-8")  # "╗" \u2557
+ACS_D_LLCORNER = bytes("╚", "utf-8")  # "╚" \u255A
+ACS_D_LRCORNER = bytes("╝", "utf-8")  # "╝" \u255D
+
+# Thin variation
+ACS_T_HLINE = bytes("─", "utf-8")  # "─" \u2500
+ACS_T_VLINE = bytes("│", "utf-8")  # "│" \u2502
+ACS_T_ULCORNER = bytes("┌", "utf-8")  # "┌" \u250C
+ACS_T_URCORNER = bytes("┐", "utf-8")  # "┐" \u2510
+ACS_T_LLCORNER = bytes("└", "utf-8")  # "└" \u2514
+ACS_T_LRCORNER = bytes("┘", "utf-8")  # "┘" \u2518
+
+# Heavy variation - not in every font
+ACS_H_HLINE = bytes("\u2501", "utf-8")  # "━" \u2501
+ACS_H_VLINE = bytes("\u2503", "utf-8")  # "┃" \u2503
+ACS_H_ULCORNER = bytes("\u250F", "utf-8")  # "┏" \u250F
+ACS_H_URCORNER = bytes("\u2513", "utf-8")  # "┓" \u2513
+ACS_H_LLCORNER = bytes("\u2517", "utf-8")  # "┗" \u2517
+ACS_H_LRCORNER = bytes("\u251B", "utf-8")  # "┛" \u251B
+
+# default to thin
+ACS_HLINE = ACS_T_HLINE
+ACS_VLINE = ACS_T_VLINE
+ACS_ULCORNER = ACS_T_ULCORNER
+ACS_URCORNER = ACS_T_URCORNER
+ACS_LLCORNER = ACS_T_LLCORNER
+ACS_LRCORNER = ACS_T_LRCORNER
+
 class Screen:
 
     @staticmethod
@@ -132,34 +171,131 @@ class Screen:
         else:
             Screen.wr(b"\x1b[?25l")
 
-    def draw_box(self, left, top, width, height):
+    def _draw_box(self, left, top, width, height):
         # Use http://www.utf8-chartable.de/unicode-utf8-table.pl
         # for utf-8 pseudographic reference
         bottom = top + height - 1
         self.goto(left, top)
         # "┌"
-        self.wr(b"\xe2\x94\x8c")
+        self.wr(ACS_ULCORNER)  # b"\xe2\x94\x8c"
         # "─"
-        hor = b"\xe2\x94\x80" * (width - 2)
+        hor = ACS_HLINE * (width - 2)  # b"\xe2\x94\x80"
         self.wr(hor)
         # "┐"
-        self.wr(b"\xe2\x94\x90")
+        self.wr(ACS_URCORNER)  # b"\xe2\x94\x90"
 
         self.goto(left, bottom)
         # "└"
-        self.wr(b"\xe2\x94\x94")
+        self.wr(ACS_LLCORNER)  # b"\xe2\x94\x94"
         self.wr(hor)
         # "┘"
-        self.wr(b"\xe2\x94\x98")
+        self.wr(ACS_LRCORNER)  # b"\xe2\x94\x98"
 
         top += 1
         while top < bottom:
             # "│"
             self.goto(left, top)
-            self.wr(b"\xe2\x94\x82")
+            self.wr(ACS_VLINE)  # b"\xe2\x94\x82"
             self.goto(left + width - 1, top)
-            self.wr(b"\xe2\x94\x82")
+            self.wr(ACS_VLINE)  # b"\xe2\x94\x82"
             top += 1
+
+    def _draw_d_box(self, left, top, width, height):
+        # Use http://www.utf8-chartable.de/unicode-utf8-table.pl
+        # for utf-8 pseudographic reference
+        bottom = top + height - 1
+        self.goto(left, top)
+        # "╔"
+        self.wr(ACS_D_ULCORNER)
+        # "═"
+        hor = ACS_D_HLINE * (width - 2)
+        self.wr(hor)
+        # "╗"
+        self.wr(ACS_D_URCORNER)
+
+        self.goto(left, bottom)
+        # "╚"
+        self.wr(ACS_D_LLCORNER)
+        self.wr(hor)
+        # "╝"
+        self.wr(ACS_D_LRCORNER)
+
+        top += 1
+        while top < bottom:
+            # "║"
+            self.goto(left, top)
+            self.wr(ACS_D_VLINE)
+            self.goto(left + width - 1, top)
+            self.wr(ACS_D_VLINE)
+            top += 1
+
+    def _draw_t_box(self, left, top, width, height):
+        # Use http://www.utf8-chartable.de/unicode-utf8-table.pl
+        # for utf-8 pseudographic reference
+        bottom = top + height - 1
+        self.goto(left, top)
+        # "╔"
+        self.wr(ACS_T_ULCORNER)
+        # "═"
+        hor = ACS_T_HLINE * (width - 2)
+        self.wr(hor)
+        # "╗"
+        self.wr(ACS_T_URCORNER)
+
+        self.goto(left, bottom)
+        # "╚"
+        self.wr(ACS_T_LLCORNER)
+        self.wr(hor)
+        # "╝"
+        self.wr(ACS_T_LRCORNER)
+
+        top += 1
+        while top < bottom:
+            # "║"
+            self.goto(left, top)
+            self.wr(ACS_T_VLINE)
+            self.goto(left + width - 1, top)
+            self.wr(ACS_T_VLINE)
+            top += 1
+
+    def _draw_h_box(self, left, top, width, height):
+        # Use http://www.utf8-chartable.de/unicode-utf8-table.pl
+        # for utf-8 pseudographic reference
+        bottom = top + height - 1
+        self.goto(left, top)
+        # "╔"
+        self.wr(ACS_H_ULCORNER)
+        # "═"
+        hor = ACS_H_HLINE * (width - 2)
+        self.wr(hor)
+        # "╗"
+        self.wr(ACS_H_URCORNER)
+
+        self.goto(left, bottom)
+        # "╚"
+        self.wr(ACS_H_LLCORNER)
+        self.wr(hor)
+        # "╝"
+        self.wr(ACS_H_LRCORNER)
+
+        top += 1
+        while top < bottom:
+            # "║"
+            self.goto(left, top)
+            self.wr(ACS_H_VLINE)
+            self.goto(left + width - 1, top)
+            self.wr(ACS_H_VLINE)
+            top += 1
+
+    def draw_box(self, left, top, width, height, style=''):
+        if style == "double":
+            self._draw_d_box(left, top, width, height)
+        elif style == "thin":
+            self._draw_t_box(left, top, width, height)
+        elif style == "heavy":
+            self._draw_h_box(left, top, width, height)
+        else:
+            self._draw_box(left, top, width, height)
 
     def clear_box(self, left, top, width, height):
         # doesn't work
